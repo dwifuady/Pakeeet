@@ -3,30 +3,38 @@ using System.Text.Json;
 using Pakeeet;
 using Refit;
 
-string telegramToken = args[0];
-string chatId = args[1];
-if(string.IsNullOrWhiteSpace(telegramToken))
+if(args is null || args.Length < 2)
 {
-    Console.WriteLine("Telegram token is empty");
+    Console.WriteLine("Telegram token or chatId is empty. Use 'dotnet run --project Pakeeet/Pakeeet.csproj -- \"token\" \"chatid\"' command to run");
     return;
 }
 
-string telegramApiUrl = $"https://api.telegram.org/bot{telegramToken}";
+var telegramToken = args[0];
+var chatId = args[1];
+
+var telegramApiUrl = $"https://api.telegram.org/bot{telegramToken}";
 
 const string siCepatApiUrl = "https://content-main-api-production.sicepat.com";
 
 var awbs = GetAwbs();
 
-if (awbs is not null)
+if (awbs is not null && awbs.AwbNumbers.Count > 0)
 {
     foreach (var awb in awbs.AwbNumbers)
     {
         await Process(awb);
     }
 }
+else
+{
+    Console.WriteLine("No awb to track");
+}
 
 async Task Process(string awb)
 {
+    if (string.IsNullOrWhiteSpace(awb))
+        return;
+    
     // Check Previous Track Status
     SiCepatDto previousTrackResult = null;
     var resultFileName = $"../../../../Public/Results/data_{awb}.json";
@@ -40,7 +48,7 @@ async Task Process(string awb)
         previousTrackResult = JsonSerializer.Deserialize<SiCepatDto>(jsonString);
     }
 
-    if ((previousTrackResult is not null && !previousTrackResult.Sicepat.Result.HasReceived) ||
+    if ((previousTrackResult is not null && !previousTrackResult.Sicepat.Result.Delivered) ||
         previousTrackResult is null)
     {
         var result = await GetLatestStatus(awb);
@@ -83,13 +91,13 @@ async Task Process(string awb)
     }
     else
     {
-        Console.WriteLine("Already received");
+        Console.WriteLine("Already delivered");
     }
 }
 
 Awbs GetAwbs()
 {
-    string awbNoFileName = $"../../../../Public/AWBs/Awb.json";
+    var awbNoFileName = $"../../../../Public/AWBs/Awb.json";
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
         awbNoFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "AWBs", "Awb.json");
@@ -120,10 +128,26 @@ async Task SendTelegramMessage(SiCepatDto result)
 {
     Console.WriteLine("Sending telegram message..");
     var telegramApi = RestService.For<ITelegramBotApi>(telegramApiUrl);
-    var message = @$"
-    <strong>{result.Sicepat.Result.WaybillNumber}</strong> 
+    await telegramApi.SendTelegramMessage(chatId, await GetMessage(result.Sicepat.Result));
+}
 
-{result.Sicepat.Result.LastStatus.DateTime}: {result.Sicepat.Result.LastStatus.City}
-    ";
-    var chatResult = await telegramApi.SendTelegramMessage(chatId, message);
+async Task<string> GetMessage(Result result)
+{
+    if (result.Delivered)
+    {
+        return await Task.Run(() => 
+            @$"<strong>{result.WaybillNumber}</strong>
+From {result.Sender} - {result.SenderAddress} at {result.SendDate} has been Delivered.
+
+{result.PODReceiver} : {result.PODReceiverTime}"
+        );    
+    }
+    
+    return await Task.Run(() => 
+        @$"<strong>{result.WaybillNumber}</strong>
+From {result.Sender} - {result.SenderAddress} at {result.SendDate} 
+
+Status updated
+{result.LastStatus.DateTime}: {result.LastStatus.ReceiverName ?? result.LastStatus.City}"
+    );
 }

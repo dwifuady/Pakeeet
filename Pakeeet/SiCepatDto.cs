@@ -13,6 +13,9 @@ namespace Pakeeet
 
         [JsonPropertyName("city")]
         public string City { get; set; }
+
+        [JsonPropertyName("receiver_name")]
+        public string ReceiverName { get; set; }
     }
 
     public class Result
@@ -86,7 +89,7 @@ namespace Pakeeet
         [JsonPropertyName("manifested_img_path")]
         public object ManifestedImgPath { get; set; }
 
-        [JsonIgnore] public bool HasReceived => !string.IsNullOrWhiteSpace(PODReceiverTime);
+        [JsonIgnore] public bool Delivered => !string.IsNullOrWhiteSpace(PODReceiverTime);
     }
 
     public class SiCepatDto
