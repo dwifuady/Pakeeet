@@ -3,6 +3,16 @@ using System.Text.Json;
 using Pakeeet;
 using Refit;
 
+string telegramToken = args[0];
+string chatId = args[1];
+if(string.IsNullOrWhiteSpace(telegramToken))
+{
+    Console.WriteLine("Telegram token is empty");
+    return;
+}
+
+string telegramApiUrl = $"https://api.telegram.org/bot{telegramToken}";
+
 const string siCepatApiUrl = "https://content-main-api-production.sicepat.com";
 
 var awbs = GetAwbs();
@@ -67,7 +77,7 @@ async Task Process(string awb)
             if (isStatusUpdated)
             {
                 await SaveResult(result, resultFileName);
-                //send telegram message
+                await SendTelegramMessage(result);
             }
         }
     }
@@ -79,7 +89,6 @@ async Task Process(string awb)
 
 Awbs GetAwbs()
 {
-    Console.WriteLine(Directory.GetCurrentDirectory());
     string awbNoFileName = $"../../../../Public/AWBs/Awb.json";
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
@@ -105,4 +114,16 @@ async Task SaveResult(SiCepatDto result, string resultFileName)
 {
     await using var streamWriter = File.CreateText(resultFileName);
     await streamWriter.WriteAsync(JsonSerializer.Serialize(result));
+}
+
+async Task SendTelegramMessage(SiCepatDto result)
+{
+    Console.WriteLine("Sending telegram message..");
+    var telegramApi = RestService.For<ITelegramBotApi>(telegramApiUrl);
+    var message = @$"
+    <strong>{result.Sicepat.Result.WaybillNumber}</strong> 
+
+{result.Sicepat.Result.LastStatus.DateTime}: {result.Sicepat.Result.LastStatus.City}
+    ";
+    var chatResult = await telegramApi.SendTelegramMessage(chatId, message);
 }

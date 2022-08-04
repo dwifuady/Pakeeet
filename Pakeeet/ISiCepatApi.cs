@@ -1,10 +1,9 @@
 ﻿using Refit;
 
-namespace Pakeeet
+namespace Pakeeet;
+
+public interface ISiCepatApi
 {
-    public interface ISiCepatApi
-    {
-        [Get("/public/check-awb/{id}")]
-        Task<SiCepatDto> CheckAwbAsync(string id);
-    }
+    [Get("/public/check-awb/{id}")]
+    Task<SiCepatDto> CheckAwbAsync(string id);
 }
