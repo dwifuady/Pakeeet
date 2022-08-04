@@ -84,7 +84,12 @@ Awbs GetAwbs()
     {
         awbNoFileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Public", "AWBs", "Awb.json");
     }
-    if (!File.Exists(awbNoFileName)) return null;
+    
+    if (!File.Exists(awbNoFileName)) 
+    {
+        Console.WriteLine($"File not exists - {awbNoFileName}");
+        return null;
+    }
     var jsonString = File.ReadAllText(awbNoFileName);
     return JsonSerializer.Deserialize<Awbs>(jsonString);
 }
