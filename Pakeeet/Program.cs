@@ -22,7 +22,7 @@ async Task Process(string awb)
     var resultFileName = $"../../../../Public/Results/data_{awb}.json";
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
-        resultFileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Public", "Results", $"data_{awb}.json");
+        resultFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "Results", $"data_{awb}.json");
     }
     if (File.Exists(resultFileName))
     {
@@ -79,12 +79,13 @@ async Task Process(string awb)
 
 Awbs GetAwbs()
 {
+    Console.WriteLine(Directory.GetCurrentDirectory());
     string awbNoFileName = $"../../../../Public/AWBs/Awb.json";
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
-        awbNoFileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Public", "AWBs", "Awb.json");
+        awbNoFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "AWBs", "Awb.json");
     }
-    
+
     if (!File.Exists(awbNoFileName)) 
     {
         Console.WriteLine($"File not exists - {awbNoFileName}");
