@@ -1,3 +1,5 @@
+![Update Tracking Data](https://github.com/dwifuady/Pakeeet/actions/workflows/refresh-data.yml/badge.svg)
+
 # Pakeeet
 > :information_source: Currently only for Sicepat
 
