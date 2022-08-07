@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Pakeeet;
 using Refit;
 
@@ -37,11 +36,8 @@ async Task Process(string awb)
     
     // Check Previous Track Status
     SiCepatDto previousTrackResult = null;
-    var resultFileName = $"../../../../Public/Results/data_{awb}.json";
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-    {
-        resultFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "Results", $"data_{awb}.json");
-    }
+    var resultFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "Results", $"data_{awb}.json");
+    
     if (File.Exists(resultFileName))
     {
         var jsonString = File.ReadAllText(resultFileName);
@@ -97,12 +93,8 @@ async Task Process(string awb)
 
 Awbs GetAwbs()
 {
-    var awbNoFileName = $"../../../../Public/AWBs/Awb.json";
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-    {
-        awbNoFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "AWBs", "Awb.json");
-    }
-
+    var awbNoFileName = Path.Combine(Directory.GetCurrentDirectory(), "Public", "AWBs", "Awb.json");
+    
     if (!File.Exists(awbNoFileName)) 
     {
         Console.WriteLine($"File not exists - {awbNoFileName}");

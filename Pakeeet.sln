@@ -5,6 +5,13 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pakeeet", "Pakeeet\Pakeeet.csproj", "{02D0D19D-3507-423B-8D6F-252CD9BACFA1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{132038ED-373B-4E26-8993-7FBC92CA02B6}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pakeeet.Web", "Pakeeet.Web\Pakeeet.Web.csproj", "{D29666B9-839C-4BA6-BBA9-E08A4DBD8971}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +22,10 @@ Global
 		{02D0D19D-3507-423B-8D6F-252CD9BACFA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02D0D19D-3507-423B-8D6F-252CD9BACFA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02D0D19D-3507-423B-8D6F-252CD9BACFA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D29666B9-839C-4BA6-BBA9-E08A4DBD8971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D29666B9-839C-4BA6-BBA9-E08A4DBD8971}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D29666B9-839C-4BA6-BBA9-E08A4DBD8971}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D29666B9-839C-4BA6-BBA9-E08A4DBD8971}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

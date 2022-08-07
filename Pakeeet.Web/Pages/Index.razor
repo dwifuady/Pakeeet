@@ -1,0 +1,127 @@
+﻿@page "/"
+@inject ISnackbar Snackbar
+
+<PageTitle>Pakeeet</PageTitle>
+
+<div style="display: grid; place-items: center; height: 100vh;">
+    <div class="d-flex flex-column gap-2">
+        <MudText Typo="Typo.h5" Style="@($"color:{Colors.Cyan.Darken3}")" Align="Align.Center">Pakeeet</MudText>
+        <div class="d-flex flex-column gap-3">
+            <MudTextField @bind-Value="Token" Label="Token" Variant="Variant.Text" InputType="InputType.Password" Required="true"></MudTextField>
+            <MudTextField @bind-Value="RequestedAwb" Label="SiCepat Resi" Variant="Variant.Text" Required="true"></MudTextField>
+            <MudButton
+                ButtonType="ButtonType.Button"
+                Variant="Variant.Filled"
+                Style="@($"color:{Colors.Cyan.Darken3}; background-color:{Colors.Cyan.Lighten3}")"
+                FullWidth="true"
+                OnClick="async () => await Track()">
+                Track
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    private string? RequestedAwb { get; set; }
+    private string? Token { get; set; }
+    private GetContentResponse? CurrentContent { get; set; }
+    private Awbs? CurrentAwbs { get; set; }
+
+    private const string GithubApiUrl = "https://api.github.com";
+    private IGithubApi _githubApi = null!;
+    
+    private GetBranchResponse? MainBranch { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Run(() => _githubApi = RestService.For<IGithubApi>(GithubApiUrl));
+    }
+
+    private async Task Track()
+    {
+        if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(RequestedAwb))
+        {
+            Snackbar.Add("Please fill both token and awb", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            await GetMainBranch();
+            await CreateNewRequestBranch();
+            await GetCurrentAwbs();
+            await UpdateAwbs();
+            await CreatePr();
+
+            RequestedAwb = null;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message + e.StackTrace);
+            Snackbar.Add("Something wrong when processing your request", Severity.Error);
+        }
+    }
+
+    private async Task GetMainBranch()
+    {
+        Snackbar.Add("Processing..", Severity.Info);
+        Console.WriteLine("Getting main branch..");
+        MainBranch = await _githubApi.GetMainBranch(Token!);
+    }
+
+    private async Task CreateNewRequestBranch()
+    {
+        if (string.IsNullOrWhiteSpace(RequestedAwb))
+        {
+            return;
+        }
+
+        var newBranchName = $"req-{RequestedAwb}";
+
+        Console.WriteLine("Creating a new branch for this request..");
+        
+        try
+        {
+            var checkBranch = await _githubApi.GetBranchByName(newBranchName, Token!);
+            
+            if (!string.IsNullOrWhiteSpace(checkBranch.Name))
+            {
+                Console.WriteLine("Branch already exists");
+                return;
+            }
+            
+            await _githubApi.CreateBranch(new CreateBranchRequest($"refs/heads/{newBranchName}", MainBranch!.Commit.Sha), Token!);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            await _githubApi.CreateBranch(new CreateBranchRequest($"refs/heads/{newBranchName}", MainBranch!.Commit.Sha), Token!);
+        }
+        Console.WriteLine($"Branch {newBranchName} created");
+    }
+
+    private async Task GetCurrentAwbs()
+    {
+        Console.WriteLine("Getting current Awbs..");
+        CurrentContent = await _githubApi.GetAwbList(Token!);
+        CurrentAwbs = CurrentContent.CurrentAwbs;
+    }
+
+    private async Task UpdateAwbs()
+    {
+        var newAwbs = CurrentAwbs;
+        newAwbs?.AwbNumbers.Add(RequestedAwb!);
+
+        Console.WriteLine("Updating Awbs..");
+        await _githubApi.UpdateContent(new UpdateAwbContentRequest(RequestedAwb!, newAwbs!, CurrentContent!.Sha), Token!);
+    }
+
+    private async Task CreatePr()
+    {
+        Snackbar.Add("Creating the request", Severity.Info);
+        Console.WriteLine("Creating a PR..");
+        await _githubApi.CreatePullRequest(new CreatePRRequest(RequestedAwb!, $"req-{RequestedAwb}"), Token!);
+        Snackbar.Add("Submitted. Your request will be reviewed and approved", Severity.Success);
+    }
+}
